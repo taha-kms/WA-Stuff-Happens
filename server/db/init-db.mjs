@@ -29,7 +29,7 @@ const init = async () => {
 
     CREATE TABLE IF NOT EXISTS games (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      user_id INTEGER ,
       start_time TEXT NOT NULL,
       end_time TEXT,
       status TEXT CHECK(status IN ('won', 'lost', 'demo')) NOT NULL,

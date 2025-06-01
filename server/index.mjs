@@ -10,6 +10,8 @@ import { open } from 'sqlite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import gameRoutes from './routes/game.mjs';
+
 const app = express();
 const PORT = 3001;
 
@@ -55,3 +57,7 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+
+
+app.use('/api', gameRoutes);
+
