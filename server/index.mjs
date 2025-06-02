@@ -1,24 +1,37 @@
-// imports
+// Top of file
 import express from 'express';
 import cors from 'cors';
+import session from 'express-session';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { open } from 'sqlite';
+import sqlite3 from 'sqlite3';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const dbPath = path.resolve(__dirname, 'db/stuffhappens.sqlite');
 
 const app = express();
 const port = 3001;
 
-// ✅ Allow frontend origin & session credentials
+// Middleware
 app.use(cors({
   origin: 'http://localhost:5173',
-  credentials: true
+  credentials: true,
+}));
+app.use(express.json());
+app.use(session({
+  secret: 'exam-session-secret',
+  resave: false,
+  saveUninitialized: false
 }));
 
-// 🛠️ Enable JSON parsing and sessions (you’ll expand this later)
-app.use(express.json());
 
-// Sample route to test
+// Existing route
 app.get('/ping', (req, res) => {
   res.json({ message: 'pong' });
 });
 
+// Server start
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });

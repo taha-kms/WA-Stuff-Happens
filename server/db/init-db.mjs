@@ -9,15 +9,16 @@ const dbPath = path.resolve(__dirname, 'stuffhappens.sqlite');
 const init = async () => {
   const db = await open({
     filename: dbPath,
-    driver: sqlite3.Database
+    driver: sqlite3.Database,
   });
 
   await db.exec(`
+    PRAGMA foreign_keys = ON;
+
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      name TEXT NOT NULL
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS cards (
@@ -29,26 +30,27 @@ const init = async () => {
 
     CREATE TABLE IF NOT EXISTS games (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER ,
+      user_id INTEGER,
       start_time TEXT NOT NULL,
       end_time TEXT,
-      status TEXT CHECK(status IN ('won', 'lost', 'demo')) NOT NULL,
-      wrong_guesses INTEGER DEFAULT 0,
-      FOREIGN KEY(user_id) REFERENCES users(id)
+      result TEXT CHECK(result IN ('win', 'lose')),
+      mode TEXT NOT NULL CHECK(mode IN ('demo', 'registered')),
+      abandoned INTEGER NOT NULL DEFAULT 0 CHECK(abandoned IN (0, 1)),
+      FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
     CREATE TABLE IF NOT EXISTS game_cards (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       game_id INTEGER NOT NULL,
       card_id INTEGER NOT NULL,
-      round_number INTEGER NOT NULL,
-      guessed_correctly INTEGER NOT NULL CHECK(guessed_correctly IN (0, 1)),
-      FOREIGN KEY(game_id) REFERENCES games(id),
-      FOREIGN KEY(card_id) REFERENCES cards(id)
+      round INTEGER NOT NULL,
+      correct INTEGER NOT NULL CHECK (correct IN (0, 1)),
+      FOREIGN KEY (game_id) REFERENCES games(id),
+      FOREIGN KEY (card_id) REFERENCES cards(id)
     );
   `);
 
-  console.log('Database initialized.');
+  console.log('✅ Database initialized at', dbPath);
   await db.close();
 };
 

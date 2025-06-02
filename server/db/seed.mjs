@@ -6,115 +6,118 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dbPath = path.resolve(__dirname, 'stuffhappens.sqlite');
+const saltRounds = 10;
 
-const hashPassword = async (plain) => {
-  const saltRounds = 10;
-  return await bcrypt.hash(plain, saltRounds);
-};
+const hashPassword = async (plain) => await bcrypt.hash(plain, saltRounds);
+
+const cardTitles = [
+  "Missed the final exam by oversleeping",
+  "Laptop crashes the night before thesis submission",
+  "Group project member ghosts you",
+  "Fire alarm goes off during oral presentation",
+  "Cafeteria runs out of food before your turn",
+  "Accidentally email your professor 'Love you'",
+  "Get caught cheating — wrongly",
+  "Wi-Fi drops during online exam",
+  "Roommate throws a party the night before your exam",
+  "You walk into the wrong class and sit for 30 minutes",
+  "You submit the wrong assignment file",
+  "Internship interview happens during your only exam",
+  "Lose your student ID before an important exam",
+  "You lock yourself out of the dorm in a towel",
+  "All-night study, sleep through the exam anyway",
+  "Final exam has topics never covered in class",
+  "Laptop gets stolen from the library",
+  "You realize you’ve been going to the wrong class all semester",
+  "You call your professor 'Dad' by mistake",
+  "Alarm fails to ring — daylight saving time",
+  "Your thesis file gets corrupted",
+  "You accidentally plagiarize and get flagged",
+  "You trip onstage during your presentation",
+  "Spill coffee all over your only copy of notes",
+  "You miss a pass/fail deadline by one minute",
+  "Class gets moved and you never notice",
+  "You get food poisoning on the day of a big exam",
+  "Dorm neighbor practices violin at 3am",
+  "You say 'I don’t care' out loud during a recorded lecture",
+  "You write the wrong subject in the answer sheet",
+  "You answer all questions on the back side of the paper",
+  "You fail a class by 0.1%",
+  "Campus printer breaks during thesis printing",
+  "You accidentally unsubmit an assignment and miss deadline",
+  "Your glasses break mid-exam",
+  "Lose access to your email account for a week",
+  "You throw up during an oral exam",
+  "You pay double rent by accident",
+  "You get locked in the library after hours",
+  "A raccoon steals your lunch in front of others",
+  "You enter a professor’s office while they’re changing",
+  "You get caught sleep-talking in a silent study room",
+  "You trip on your gown at graduation",
+  "You accidentally send a meme to your professor",
+  "Your professor misplaces your exam",
+  "Your flatmate eats your last pre-exam snack",
+  "Class gets cancelled after you commute 2 hours",
+  "You realize your exam was yesterday",
+  "You get wrongly accused of stealing books",
+  "You cry during a test and your professor comforts the wrong person"
+];
 
 const seed = async () => {
   const db = await open({ filename: dbPath, driver: sqlite3.Database });
 
-  console.log("🔄 Seeding users...");
-  await db.run(`DELETE FROM users`);
+  console.log("🧹 Clearing old data...");
+  await db.exec(`DELETE FROM game_cards; DELETE FROM games; DELETE FROM cards; DELETE FROM users;`);
+
+  console.log("🔐 Seeding users...");
   const password1 = await hashPassword('test123');
   const password2 = await hashPassword('guest123');
+
   const user1 = await db.run(
-    `INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)`,
-    ['alice@example.com', password1, 'Alice']
-  );
-  const user2 = await db.run(
-    `INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)`,
-    ['bob@example.com', password2, 'Bob']
+    `INSERT INTO users (email, password_hash) VALUES (?, ?)`,
+    ['player1@example.com', password1]
   );
 
-  console.log("🎓 Seeding student life cards...");
-  await db.run(`DELETE FROM cards`);
-  const studentCards = [
-    "You study all night… for the wrong exam",
-    "Your laptop crashes right before submission",
-    "You call the professor 'mom'",
-    "You forget your presentation day and show up late",
-    "You oversleep and miss the final exam",
-    "You show up to class in pajamas by mistake",
-    "You realize the group project is due today",
-    "Your alarm doesn’t go off on exam day",
-    "You lose your USB with all your coursework",
-    "You answer the exam question — from last year",
-    "You get locked out of your dorm with wet hair",
-    "You walk into the wrong classroom and stay too long",
-    "You accidentally submit a meme instead of your essay",
-    "You sneeze on your professor during office hours",
-    "You spill coffee on your only printed copy",
-    "You join a Zoom class — with your mic on and no pants",
-    "You sit in your professor’s seat on the first day",
-    "You ask a question… and they just answered it",
-    "You skip class — and get called out in the email summary",
-    "You lose your student ID right before an exam",
-    "You forget to hit 'Submit' on the online portal",
-    "Your Wi-Fi cuts out during an online quiz",
-    "You confuse two assignments and submit both wrong",
-    "Your laptop updates itself during the test",
-    "You show up on a holiday thinking there’s class",
-    "You plagiarize by accident using your own notes",
-    "You bring the wrong notes to the final exam",
-    "You accidentally call your prof by their first name",
-    "You sleep through a group presentation",
-    "You realize you wrote the essay in the wrong language",
-    "You cry during the test — and the prof notices",
-    "You submit your resume with a typo in your name",
-    "You ask a prof for help... and they’re not your prof",
-    "You mix up the Zoom links and join a stranger’s class",
-    "You drop your lunch in the library",
-    "You turn in an assignment late due to a timezone mix-up",
-    "You’re called to present... and you didn’t prepare",
-    "Your computer fan is louder than your professor’s voice",
-    "You show up drunk to a morning lecture (accidentally)",
-    "You register for a course that was canceled months ago",
-    "You prepare for a midterm… that already happened",
-    "Your project file gets corrupted before submission",
-    "You text a meme to your prof instead of your group chat",
-    "You join the wrong breakout room and stay for 10 mins",
-    "You mispronounce every keyword during your defense",
-    "You upload the wrong file — 3 minutes before deadline",
-    "You forget your login and miss registration",
-    "You misread the assignment and do double the work",
-    "Your mouse dies during a timed quiz",
-    "You realize you’re in the wrong major — in your final year"
-  ];
+  await db.run(
+    `INSERT INTO users (email, password_hash) VALUES (?, ?)`,
+    ['guest@example.com', password2]
+  );
 
-  let index = 1.0;
-  for (let i = 0; i < studentCards.length; i++) {
+  const userId = user1.lastID;
+
+  console.log("🃏 Inserting 50 horrible university life cards...");
+  for (let i = 0; i < cardTitles.length; i++) {
+    const title = cardTitles[i];
+    const imageUrl = `https://via.placeholder.com/300x200.png?text=Card+${i + 1}`;
+    const badLuckIndex = (i + 1) * 1.5; // 1.5, 3.0, ..., 75.0
+
     await db.run(
       `INSERT INTO cards (title, image_url, bad_luck_index) VALUES (?, ?, ?)`,
-      [
-        studentCards[i],
-        `https://via.placeholder.com/150?text=Card+${i + 1}`,
-        index.toFixed(1)
-      ]
+      [title, imageUrl, badLuckIndex.toFixed(1)]
     );
-    index += 1.9;
   }
 
-  console.log("🎮 Creating a finished game...");
-  await db.run(`DELETE FROM games`);
-  await db.run(`DELETE FROM game_cards`);
-  const start = new Date().toISOString();
-  const end = new Date(Date.now() + 300000).toISOString(); // +5 min
+  console.log("🎮 Creating one 'win' game for player1...");
+  const now = new Date();
+  const start = now.toISOString();
+  const end = new Date(now.getTime() + 1000 * 60 * 5).toISOString(); // +5 minutes
 
   const game = await db.run(
-    `INSERT INTO games (user_id, start_time, end_time, status, wrong_guesses) VALUES (?, ?, ?, ?, ?)`,
-    [user1.lastID, start, end, 'won', 1]
+    `INSERT INTO games (user_id, start_time, end_time, result, mode, abandoned)
+     VALUES (?, ?, ?, 'win', 'registered', 0)`,
+    [userId, start, end]
   );
+  const gameId = game.lastID;
 
-  for (let round = 1; round <= 6; round++) {
+  for (let i = 0; i < 6; i++) {
     await db.run(
-      `INSERT INTO game_cards (game_id, card_id, round_number, guessed_correctly) VALUES (?, ?, ?, ?)`,
-      [game.lastID, round, round, round !== 3 ? 1 : 0]
+      `INSERT INTO game_cards (game_id, card_id, round, correct)
+       VALUES (?, ?, ?, 1)`,
+      [gameId, i + 1, i + 1]
     );
   }
 
-  console.log("✅ Seeding completed.");
+  console.log("✅ Seeding complete.");
   await db.close();
 };
 
